@@ -44,7 +44,7 @@ dependencies:
   cloud_firestore: ^5.6.3 # Connect Cloud Firestore (firebase database)
   firebase_core: ^3.11.0 # Connect Flutter to Firebase
   firebase_auth: ^5.4.2 # Firebase Authentication
-  image_picker: ^1.1.2 # Image Picker
+  image_picker: ^1.1.2 # Image Picker
 
 dev_dependencies:
   flutter_test:
@@ -69,7 +69,9 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
+  - assets/images/
+  - assets/raw/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
