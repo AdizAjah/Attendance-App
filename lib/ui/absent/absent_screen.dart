@@ -2,6 +2,89 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:attendance_app/ui/home_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+// --- COPY PASTE kSakitMataInputDecoration & SakitMataButton DARI ATAS KE SINI ---
+
+// Helper untuk Input Style
+InputDecoration kSakitMataInputDecoration(String label) {
+  return InputDecoration(
+    labelText: "--> $label <--",
+    labelStyle: GoogleFonts.comicNeue(
+      color: const Color(0xFFFF0000), // Merah
+      fontWeight: FontWeight.w900,
+      fontSize: 16,
+    ),
+    filled: true,
+    fillColor: const Color(0xFFFFFF00), // Latar Kuning
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(0), // Kotak
+      borderSide: const BorderSide(color: Color(0xFF0000FF), width: 4), // Border Biru Tebal
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(0),
+      borderSide: const BorderSide(color: Color(0xFF0000FF), width: 4),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(0),
+      borderSide: const BorderSide(color: Color(0xFFFF0000), width: 6), // Border Merah Tebal saat Fokus
+    ),
+  );
+}
+
+// Tombol Gradien yang Menyebalkan
+class SakitMataButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String text;
+
+  const SakitMataButton({
+    Key? key,
+    required this.onPressed,
+    required this.text,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.all(0),
+        shape: BeveledRectangleBorder( // Bentuk aneh
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Colors.black, width: 3)
+        ),
+        elevation: 10,
+        shadowColor: Colors.black,
+      ),
+      child: Ink(
+        decoration: BoxDecoration(
+          // Gradien Pink ke Kuning
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFF00FF), Color(0xFFFFFF00)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Container(
+          width: double.infinity,
+          height: 60,
+          alignment: Alignment.center,
+          child: Text(
+            text.toUpperCase(),
+            style: GoogleFonts.comicNeue(
+              color: const Color(0xFF0000FF), // Teks Biru
+              fontWeight: FontWeight.w900,
+              fontSize: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+// -------------------------------------------------------------------------
 
 class AbsentScreen extends StatefulWidget {
   const AbsentScreen({super.key});
@@ -19,14 +102,11 @@ class _AbsentScreenState extends State<AbsentScreen> {
   ];
 
   final controllerName = TextEditingController();
-  double dLat = 0.0, dLong = 0.0;
   final CollectionReference dataCollection = FirebaseFirestore.instance
       .collection('attendance');
 
-  int dateHours = 0, dateMinutes = 0;
   String dropValueCategories = "Please Choose:";
   final fromController = TextEditingController();
-  String strAlamat = '', strDate = '', strTime = '', strDateTime = '';
   final toController = TextEditingController();
 
   @override
@@ -34,17 +114,20 @@ class _AbsentScreenState extends State<AbsentScreen> {
     super.initState();
   }
 
-  //show progress dialog
   showLoaderDialog(BuildContext context) {
     AlertDialog alert = AlertDialog(
+      backgroundColor: const Color(0xFFFFFF00), // Kuning
       content: Row(
         children: [
           const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
           ),
           Container(
             margin: const EdgeInsets.only(left: 20),
-            child: const Text("Please Wait..."),
+            child: Text(
+              "LOADING...",
+              style: GoogleFonts.comicNeue(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
           ),
         ],
       ),
@@ -58,29 +141,21 @@ class _AbsentScreenState extends State<AbsentScreen> {
     );
   }
 
-  //submit data absent to firebase
   Future<void> submitAbsen(
     String nama,
     String keterangan,
     String from,
     String until,
   ) async {
-    // Validasi input sebelum mengirim ke Firebase
     if (nama.isEmpty ||
         keterangan == "Please Choose:" ||
         from.isEmpty ||
         until.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.white),
-              SizedBox(width: 10),
-              Text(
-                "Pastikan semua data telah diisi!",
-                style: TextStyle(color: Colors.white),
-              ),
-            ],
+        SnackBar(
+          content: Text(
+            "ISI SEMUA WOI!",
+            style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
@@ -89,7 +164,6 @@ class _AbsentScreenState extends State<AbsentScreen> {
       return;
     }
 
-    // Menampilkan loader
     showLoaderDialog(context);
 
     try {
@@ -98,51 +172,33 @@ class _AbsentScreenState extends State<AbsentScreen> {
         'name': nama,
         'description': keterangan,
         'datetime': '$from - $until',
-        'created_at': FieldValue.serverTimestamp(), // Tambahkan timestamp
+        'created_at': FieldValue.serverTimestamp(),
       });
 
-      // Tutup loader sebelum menampilkan pesan sukses
       Navigator.of(context).pop();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle_outline, color: Colors.white),
-              SizedBox(width: 10),
-              Text(
-                "Yeay! Attendance Report Succeeded!",
-                style: TextStyle(color: Colors.white),
-              ),
-            ],
+        SnackBar(
+          content: Text(
+            "BERHASIL!",
+            style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
 
-      // Kembali ke halaman utama
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } catch (e) {
-      // Jika terjadi error, tutup loader
       Navigator.of(context).pop();
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  "Ups, terjadi kesalahan: $e",
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
+          content: Text(
+            "ERROR: $e",
+            style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
@@ -151,369 +207,152 @@ class _AbsentScreenState extends State<AbsentScreen> {
     }
   }
 
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
+    DateTime? pickedDate = await showDatePicker(
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          // Tema Date Picker yang Sakit Mata
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              onPrimary: Color(0xFFFFFF00), // Teks Header Kuning
+              onSurface: Color(0xFFFF0000), // Teks Tanggal Merah
+              primary: Color(0xFFFF00FF), // Pink
+            ),
+            datePickerTheme: const DatePickerThemeData(
+              headerBackgroundColor: Color(0xFFFF00FF), // Header Pink
+              backgroundColor: Color(0xFF00FF00), // Latar Lime
+              headerForegroundColor: Color(0xFFFFFF00), // Teks Header Kuning
+            ),
+          ),
+          child: child!,
+        );
+      },
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(9999),
+    );
+    if (pickedDate != null) {
+      controller.text = DateFormat('dd/M/yyyy').format(pickedDate);
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color.fromARGB(255, 26, 0, 143),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        centerTitle: true,
-        title: const Text(
-          "Permission Request Menu",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+        title: const Text("PERMISSION REQUEST"),
       ),
-      body: SingleChildScrollView(
-        child: Card(
-          color: Colors.white,
-          margin: const EdgeInsets.fromLTRB(10, 10, 10, 30),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+      body: Container(
+        // Latar belakang tiling
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/ic_history.png'), // Ganti gambar tiling
+            repeat: ImageRepeat.repeat,
+            opacity: 0.2,
           ),
-          elevation: 5,
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 50,
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                  ),
-                  color: Colors.blueAccent,
-                ),
-                child: const Row(
-                  children: [
-                    SizedBox(width: 12),
-                    Icon(Icons.maps_home_work_outlined, color: Colors.white),
-                    SizedBox(width: 12),
-                    Text(
-                      "Please Fill out the Form!",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+              Text(
+                "FORMULIR IZIN!",
+                style: GoogleFonts.comicNeue(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFFFF0000), // Merah
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 20, 10, 20),
-                child: TextField(
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.text,
-                  controller: controllerName,
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                    labelText: "Your Name",
-                    hintText: "Please enter your name",
-                    hintStyle: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                    labelStyle: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.blueAccent),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.blueAccent),
-                    ),
-                  ),
-                ),
+              const SizedBox(height: 20),
+              TextField(
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.text,
+                controller: controllerName,
+                decoration: kSakitMataInputDecoration("NAMA LENGKAP"),
               ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                child: Text(
-                  "Description",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.blueAccent,
-                      style: BorderStyle.solid,
-                      width: 1,
-                    ),
-                  ),
-                  child: DropdownButton(
-                    dropdownColor: Colors.white,
-                    value: dropValueCategories,
-                    onChanged: (value) {
-                      setState(() {
-                        dropValueCategories = value.toString();
-                      });
-                    },
-                    items:
-                        categoriesList.map((value) {
-                          return DropdownMenuItem(
-                            value: value.toString(),
-                            child: Text(
-                              value.toString(),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                    icon: const Icon(Icons.arrow_drop_down),
-                    iconSize: 24,
-                    elevation: 16,
-                    style: const TextStyle(color: Colors.black, fontSize: 14),
-                    underline: Container(height: 2, color: Colors.transparent),
-                    isExpanded: true,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const Text(
-                            "From: ",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Expanded(
-                            child: TextField(
-                              readOnly: true,
-                              onTap: () async {
-                                DateTime? pickedDate = await showDatePicker(
-                                  builder: (
-                                    BuildContext context,
-                                    Widget? child,
-                                  ) {
-                                    return Theme(
-                                      data: Theme.of(context).copyWith(
-                                        colorScheme: const ColorScheme.light(
-                                          onPrimary: Colors.white,
-                                          onSurface: Colors.white,
-                                          primary: Colors.blueAccent,
-                                        ),
-                                        datePickerTheme:
-                                            const DatePickerThemeData(
-                                              headerBackgroundColor:
-                                                  Colors.blueAccent,
-                                              backgroundColor: Color.fromARGB(
-                                                255,
-                                                0,
-                                                0,
-                                                0,
-                                              ),
-                                              headerForegroundColor:
-                                                  Colors.white,
-                                              surfaceTintColor: Colors.white,
-                                            ),
-                                      ),
-                                      child: child!,
-                                    );
-                                  },
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime(1900),
-                                  lastDate: DateTime(9999),
-                                );
-                                if (pickedDate != null) {
-                                  fromController.text = DateFormat(
-                                    'dd/M/yyyy',
-                                  ).format(pickedDate);
-                                }
-                              },
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                              ),
-                              controller: fromController,
-                              decoration: const InputDecoration(
-                                contentPadding: EdgeInsets.all(8),
-                                hintText: "Starting From",
-                                hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const Text(
-                            "Until: ",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Expanded(
-                            child: TextField(
-                              readOnly: true,
-                              onTap: () async {
-                                DateTime? pickedDate = await showDatePicker(
-                                  builder: (
-                                    BuildContext context,
-                                    Widget? widget,
-                                  ) {
-                                    return Theme(
-                                      data: Theme.of(context).copyWith(
-                                        colorScheme: const ColorScheme.light(
-                                          onPrimary: Colors.white,
-                                          onSurface: Colors.white,
-                                          primary: Colors.blueAccent,
-                                        ),
-                                        datePickerTheme:
-                                            const DatePickerThemeData(
-                                              headerBackgroundColor:
-                                                  Colors.blueAccent,
-                                              backgroundColor: Color.fromARGB(
-                                                255,
-                                                0,
-                                                0,
-                                                0,
-                                              ),
-                                              headerForegroundColor:
-                                                  Colors.white,
-                                              surfaceTintColor: Colors.white,
-                                            ),
-                                      ),
-                                      child: widget!,
-                                    );
-                                  },
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime(1900),
-                                  lastDate: DateTime(9999),
-                                );
-                                if (pickedDate != null) {
-                                  toController.text = DateFormat(
-                                    'dd/M/yyyy',
-                                  ).format(pickedDate);
-                                }
-                              },
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                              ),
-                              controller: toController,
-                              decoration: const InputDecoration(
-                                contentPadding: EdgeInsets.all(8),
-                                hintText: "Until",
-                                hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.center,
-                margin: const EdgeInsets.all(30),
-                child: Material(
-                  elevation: 3,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    width: size.width,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.white,
-                    ),
-                    child: Material(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.blueAccent,
-                      child: InkWell(
-                        splashColor: Colors.blue,
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () {
-                          if (controllerName.text.isEmpty ||
-                              dropValueCategories == "Please Choose:" ||
-                              fromController.text.isEmpty ||
-                              toController.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.info_outline,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(width: 10),
-                                    Text(
-                                      "Ups, please fill the form!",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                                backgroundColor: Colors.blueAccent,
-                                shape: StadiumBorder(),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          } else {
-                            submitAbsen(
-                              controllerName.text.toString(),
-                              dropValueCategories.toString(),
-                              fromController.text,
-                              toController.text,
-                            );
-                          }
-                        },
-                        child: const Center(
-                          child: Text(
-                            "Make a Request",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+              const SizedBox(height: 20),
+              
+              DropdownButtonFormField<String>(
+                decoration: kSakitMataInputDecoration("KETERANGAN"),
+                value: dropValueCategories,
+                dropdownColor: const Color(0xFFFFFF00), // Dropdown Kuning
+                style: GoogleFonts.comicNeue(color: const Color(0xFFFF0000), fontWeight: FontWeight.bold),
+                onChanged: (value) {
+                  setState(() {
+                    dropValueCategories = value.toString();
+                  });
+                },
+                items:
+                    categoriesList.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value.toUpperCase(),
+                          style: GoogleFonts.comicNeue(fontSize: 14, color: const Color(0xFFFF0000), fontWeight: FontWeight.bold),
                         ),
+                      );
+                    }).toList(),
+                icon: const Icon(Icons.arrow_downward_rounded, color: Color(0xFF0000FF), size: 30),
+              ),
+              const SizedBox(height: 20),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: fromController,
+                      readOnly: true,
+                      decoration: kSakitMataInputDecoration("DARI TANGGAL").copyWith(
+                        suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFF0000FF)),
                       ),
+                      onTap: () => _selectDate(context, fromController),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextField(
+                      controller: toController,
+                      readOnly: true,
+                      decoration: kSakitMataInputDecoration("SAMPAI TANGGAL").copyWith(
+                        suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFF0000FF)),
+                      ),
+                      onTap: () => _selectDate(context, toController),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+
+              SakitMataButton(
+                text: "AJUKAN REQUEST!",
+                onPressed: () {
+                  if (controllerName.text.isEmpty ||
+                      dropValueCategories == "Please Choose:" ||
+                      fromController.text.isEmpty ||
+                      toController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "ISI SEMUA WOI!",
+                          style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor: Colors.redAccent,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  } else {
+                    submitAbsen(
+                      controllerName.text.toString(),
+                      dropValueCategories.toString(),
+                      fromController.text,
+                      toController.text,
+                    );
+                  }
+                },
               ),
             ],
           ),

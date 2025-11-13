@@ -45,6 +45,7 @@ dependencies:
   firebase_core: ^3.11.0 # Connect Flutter to Firebase
   firebase_auth: ^5.4.2 # Firebase Authentication
   image_picker: ^1.1.2 # Image Picker
+  google_fonts: ^6.2.1 # Tambahkan baris ini
 
 dev_dependencies:
   flutter_test:

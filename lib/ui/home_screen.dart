@@ -2,43 +2,131 @@ import 'package:flutter/material.dart';
 import 'package:attendance_app/ui/absent/absent_screen.dart';
 import 'package:attendance_app/ui/attend/attend_screen.dart';
 import 'package:attendance_app/ui/attendance_history/attendance_history.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Color?> _colorAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _colorAnimation = ColorTween(
+      begin: const Color(0xFFFF0000), // Merah
+      end: const Color(0xFF0000FF),   // Biru
+    ).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // Widget Kustom untuk Border Rame
+  Widget _buildMenuSection({
+    required String title,
+    required String imagePath,
+    required Color borderColor,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          border: Border.all(color: borderColor, width: 5),
+          borderRadius: BorderRadius.circular(15),
+          color: const Color(0xFFFFFF00).withOpacity(0.8), // Latar Kuning Transparan
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image(
+                image: AssetImage(imagePath),
+                height: 100,
+                width: 100,
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(5),
+                color: const Color(0xFFFF00FF), // Background Teks Pink
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.comicNeue(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFFFFF00), // Teks Kuning
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          // Header
-          SizedBox(
-            height: 50,
-            child: Scaffold(
-              appBar: AppBar(
-                backgroundColor: Colors.blueAccent,
-                centerTitle: true,
-                title: const Text(
-                  "Attendance - Flutter App Admin",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+      appBar: AppBar(
+        title: const Text("!! ATTENDANCE APP !!"),
+      ),
+      // Latar belakang tiling yang ramai
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/ic_absen.png'),
+            repeat: ImageRepeat.repeat,
+            opacity: 0.3,
           ),
+        ),
+        child: Column(
+          children: [
+            // Teks Berkedip
+            AnimatedBuilder(
+              animation: _colorAnimation,
+              builder: (context, child) {
+                return Container(
+                  width: double.infinity,
+                  color: Colors.black,
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    "PILIH MENU DI BAWAH INI!!!",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.comicNeue(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: _colorAnimation.value,
+                    ),
+                  ),
+                );
+              },
+            ),
 
-          // Content
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  // efect when click
-                  child: InkWell(
-                    highlightColor: Colors.transparent,
-                    splashColor: Colors.transparent,
+            // Menu
+            Expanded(
+              child: Column(
+                children: [
+                  _buildMenuSection(
+                    title: "Attendance Record",
+                    imagePath: 'assets/images/ic_absen.png',
+                    borderColor: const Color(0xFFFF0000), // Border Merah
                     onTap: () {
                       Navigator.push(
                         context,
@@ -47,29 +135,11 @@ class HomeScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image(
-                          image: AssetImage('assets/images/ic_absen.png'),
-                          height: 100,
-                          width: 100,
-                        ),
-                        Text(
-                          "Attendance Record",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-                Expanded(
-                  child: InkWell(
-                    highlightColor: Colors.transparent,
-                    splashColor: Colors.transparent,
+                  _buildMenuSection(
+                    title: "Permission",
+                    imagePath: 'assets/images/ic_leave.png',
+                    borderColor: const Color(0xFF0000FF), // Border Biru
                     onTap: () {
                       Navigator.push(
                         context,
@@ -78,29 +148,11 @@ class HomeScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image(
-                          image: AssetImage('assets/images/ic_leave.png'),
-                          height: 100,
-                          width: 100,
-                        ),
-                        Text(
-                          "Permission",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-                Expanded(
-                  child: InkWell(
-                    highlightColor: Colors.transparent,
-                    splashColor: Colors.transparent,
+                  _buildMenuSection(
+                    title: "Attendance History",
+                    imagePath: 'assets/images/ic_history.png',
+                    borderColor: const Color(0xFF000000), // Border Hitam
                     onTap: () {
                       Navigator.push(
                         context,
@@ -109,48 +161,28 @@ class HomeScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image(
-                          image: AssetImage('assets/images/ic_history.png'),
-                          height: 100,
-                          width: 100,
-                        ),
-                        Text(
-                          "Attendance History",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          // Footer
-          SizedBox(
-            height: 50,
-            child: Scaffold(
-              appBar: AppBar(
-                backgroundColor: Colors.blueAccent,
-                centerTitle: true,
-                title: const Text(
-                  "IDN Boarding School Solo",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+            // Footer
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              color: const Color(0xFFFF00FF), // Pink
+              child: Text(
+                "IDN Boarding School Solo",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.comicNeue(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFFFFF00), // Kuning
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
