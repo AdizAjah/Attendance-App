@@ -4,38 +4,11 @@ import 'package:attendance_app/ui/attend/attend_screen.dart';
 import 'package:attendance_app/ui/attendance_history/attendance_history.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class HomeScreen extends StatefulWidget {
+// Hapus StatefulWidget, ganti jadi StatelessWidget lagi
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Color?> _colorAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _colorAnimation = ColorTween(
-      begin: const Color(0xFFFF0000), // Merah
-      end: const Color(0xFF0000FF),   // Biru
-    ).animate(_controller);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  // Widget Kustom untuk Border Rame
+  // Widget Kustom untuk Border Rame (INI TETAP SAMA)
   Widget _buildMenuSection({
     required String title,
     required String imagePath,
@@ -87,102 +60,88 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       appBar: AppBar(
         title: const Text("!! ATTENDANCE APP !!"),
       ),
-      // Latar belakang tiling yang ramai
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/ic_absen.png'),
-            repeat: ImageRepeat.repeat,
-            opacity: 0.3,
+      // HAPUS Container dengan decoration image dari sini
+      body: Column(
+        children: [
+          // GANTI AnimatedBuilder menjadi Container biasa
+          Container(
+            width: double.infinity,
+            color: Colors.black,
+            padding: const EdgeInsets.all(10),
+            child: Text(
+              "PILIH MENU DI BAWAH INI!!!",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.comicNeue(
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFFFF0000), // Ganti ke warna statis (Merah)
+              ),
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            // Teks Berkedip
-            AnimatedBuilder(
-              animation: _colorAnimation,
-              builder: (context, child) {
-                return Container(
-                  width: double.infinity,
-                  color: Colors.black,
-                  padding: const EdgeInsets.all(10),
-                  child: Text(
-                    "PILIH MENU DI BAWAH INI!!!",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.comicNeue(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      color: _colorAnimation.value,
-                    ),
-                  ),
-                );
-              },
-            ),
 
-            // Menu
-            Expanded(
-              child: Column(
-                children: [
-                  _buildMenuSection(
-                    title: "Attendance Record",
-                    imagePath: 'assets/images/ic_absen.png',
-                    borderColor: const Color(0xFFFF0000), // Border Merah
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AttendScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuSection(
-                    title: "Permission",
-                    imagePath: 'assets/images/ic_leave.png',
-                    borderColor: const Color(0xFF0000FF), // Border Biru
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AbsentScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuSection(
-                    title: "Attendance History",
-                    imagePath: 'assets/images/ic_history.png',
-                    borderColor: const Color(0xFF000000), // Border Hitam
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AttendanceHistoryScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // Footer
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              color: const Color(0xFFFF00FF), // Pink
-              child: Text(
-                "IDN Boarding School Solo",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.comicNeue(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFFFFFF00), // Kuning
+          // Menu (Isi tetap sama)
+          Expanded(
+            child: Column(
+              children: [
+                _buildMenuSection(
+                  title: "Attendance Record",
+                  imagePath: 'assets/images/ic_absen.png',
+                  borderColor: const Color(0xFFFF0000), // Border Merah
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AttendScreen(),
+                      ),
+                    );
+                  },
                 ),
+                _buildMenuSection(
+                  title: "Permission",
+                  imagePath: 'assets/images/ic_leave.png',
+                  borderColor: const Color(0xFF0000FF), // Border Biru
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AbsentScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildMenuSection(
+                  title: "Attendance History",
+                  imagePath: 'assets/images/ic_history.png',
+                  borderColor: const Color(0xFF000000), // Border Hitam
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AttendanceHistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Footer (Tetap sama)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(10),
+            color: const Color(0xFFFF00FF), // Pink
+            child: Text(
+              "IDN Boarding School Solo",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.comicNeue(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFFFFFF00), // Kuning
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
