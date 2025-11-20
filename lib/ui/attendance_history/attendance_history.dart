@@ -1,36 +1,10 @@
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+// Import tema dan widget baru
+import 'package:attendance_app/main.dart'; // Import primaryColor, accentColor, kModernInputDecoration, ModernButton
 
-// --- COPY PASTE kSakitMataInputDecoration DARI ATAS KE SINI ---
-// Helper untuk Input Style
-InputDecoration kSakitMataInputDecoration(String label) {
-  return InputDecoration(
-    labelText: "--> $label <--",
-    labelStyle: GoogleFonts.comicNeue(
-      color: const Color(0xFFFF0000), // Merah
-      fontWeight: FontWeight.w900,
-      fontSize: 16,
-    ),
-    filled: true,
-    fillColor: const Color(0xFFFFFF00), // Latar Kuning
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(0), // Kotak
-      borderSide: const BorderSide(color: Color(0xFF0000FF), width: 4), // Border Biru Tebal
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(0),
-      borderSide: const BorderSide(color: Color(0xFF0000FF), width: 4),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(0),
-      borderSide: const BorderSide(color: Color(0xFFFF0000), width: 6), // Border Merah Tebal saat Fokus
-    ),
-  );
-}
-// -----------------------------------------------------------------
+// Hapus definisi kSakitMataInputDecoration karena sudah diimpor dari main.dart
 
 class AttendanceHistoryScreen extends StatefulWidget {
   const AttendanceHistoryScreen({super.key});
@@ -44,28 +18,30 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   final CollectionReference dataCollection = FirebaseFirestore.instance
       .collection('attendance');
 
+  // Skema warna baru untuk status
   Color _getColorForDescription(String description) {
     if (description.toLowerCase() == 'attend') {
-      return Colors.green;
+      return accentColor; // Hijau Mint untuk Hadir
     } else if (description.toLowerCase() == 'late') {
-      return Colors.orange;
-    } else if (description == 'Permission' || description == 'Sick' || description == 'Others') {
-      return Colors.blue;
+      return Colors.orange.shade700; // Orange yang lebih kalem untuk Terlambat
+    } else if (description == 'Permission' || description == 'Izin' || description == 'Sick' || description == 'Sakit' || description == 'Others' || description == 'Lainnya') {
+      return primaryColor; // Biru Laut untuk Izin/Sakit
     }
-    return Colors.black;
+    return textColor;
   }
 
   IconData _getIconForDescription(String description) {
      if (description.toLowerCase() == 'attend') {
       return Icons.check_circle_outline;
     } else if (description.toLowerCase() == 'late') {
-      return Icons.hourglass_bottom_rounded;
-    } else if (description == 'Permission' || description == 'Sick' || description == 'Others') {
+      return Icons.access_time_filled_rounded;
+    } else if (description == 'Permission' || description == 'Izin' || description == 'Sick' || description == 'Sakit' || description == 'Others' || description == 'Lainnya') {
       return Icons.event_note_outlined;
     }
     return Icons.person_outline;
   }
 
+  // Dialog Edit Data dengan UI yang bersih
   void _editData(
     String docId,
     String currentName,
@@ -90,48 +66,47 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            backgroundColor: const Color(0xFF00FF00), // Latar Lime
-            shape: BeveledRectangleBorder(
-              side: const BorderSide(color: Color(0xFFFF0000), width: 5), // Border Merah
+            backgroundColor: Colors.white, 
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
             ),
-            title: Text("EDIT DATA", style: GoogleFonts.comicNeue(fontWeight: FontWeight.w900, color: const Color(0xFFFFFF00), backgroundColor: const Color(0xFFFF00FF))),
+            title: Text("Edit Data", style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: textColor)),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: nameController,
-                    decoration: kSakitMataInputDecoration("Name"),
+                    decoration: kModernInputDecoration("Nama"),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: addressController,
-                    decoration: kSakitMataInputDecoration("Address"),
+                    decoration: kModernInputDecoration("Alamat"),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: descriptionController,
-                    decoration: kSakitMataInputDecoration("Description"),
+                    decoration: kModernInputDecoration("Keterangan"),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: datetimeController,
-                    decoration: kSakitMataInputDecoration("Datetime"),
+                    decoration: kModernInputDecoration("Waktu (Datetime)"),
                   ),
                 ],
               ),
             ),
             actions: [
-              TextButton(
-                style: TextButton.styleFrom(backgroundColor: const Color(0xFFFFFF00)),
+              ModernButton(
+                text: "BATAL",
+                color: Colors.grey.shade400,
+                textColor: textColor,
                 onPressed: () => Navigator.pop(context),
-                child: Text(
-                  "BATAL",
-                  style: GoogleFonts.comicNeue(color: Colors.red, fontWeight: FontWeight.bold),
-                ),
               ),
-              TextButton(
-                style: TextButton.styleFrom(backgroundColor: const Color(0xFFFFFF00)),
+              ModernButton(
+                text: "SIMPAN",
+                color: primaryColor,
                 onPressed: () async {
                   await dataCollection.doc(docId).update({
                     'name': nameController.text,
@@ -142,41 +117,39 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   Navigator.pop(context);
                   setState(() {}); 
                 },
-                child: Text(
-                  "SIMPAN",
-                  style: GoogleFonts.comicNeue(color: const Color(0xFF0000FF), fontWeight: FontWeight.bold),
-                ),
               ),
             ],
           ),
     );
   }
 
+  // Dialog Hapus Data dengan UI yang bersih
   void _deleteData(String docId) {
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            backgroundColor: const Color(0xFF00FF00), // Latar Lime
-            shape: BeveledRectangleBorder(
-              side: const BorderSide(color: Color(0xFFFF0000), width: 5), // Border Merah
+            backgroundColor: Colors.white, 
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
             ),
-            title: Text("HAPUS DATA??", style: GoogleFonts.comicNeue(fontWeight: FontWeight.w900, color: const Color(0xFFFFFF00), backgroundColor: const Color(0xFFFF00FF))),
-            content: Text("YAKIN MAU DIHAPUS?!", style: GoogleFonts.comicNeue(color: Colors.red, fontWeight: FontWeight.bold)),
+            title: Text("Konfirmasi Hapus", style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: textColor)),
+            content: Text("Anda yakin ingin menghapus data ini?", style: GoogleFonts.poppins(color: textColor)),
             actions: [
-              TextButton(
-                style: TextButton.styleFrom(backgroundColor: const Color(0xFFFFFF00)),
+              ModernButton(
+                text: "TIDAK",
+                color: Colors.grey.shade400,
+                textColor: textColor,
                 onPressed: () => Navigator.pop(context),
-                child: Text("GAK JADI", style: GoogleFonts.comicNeue(color: Colors.blue, fontWeight: FontWeight.bold)),
               ),
-              TextButton(
-                 style: TextButton.styleFrom(backgroundColor: const Color(0xFFFFFF00)),
+              ModernButton(
+                text: "HAPUS",
+                color: Colors.red,
                 onPressed: () async {
                   await dataCollection.doc(docId).delete();
                   Navigator.pop(context);
                   setState(() {}); 
                 },
-                child: Text("HAPUS!", style: GoogleFonts.comicNeue(color: Colors.red, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -187,140 +160,141 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ATTENDANCE HISTORY"),
+        title: const Text("RIWAYAT ABSENSI"),
       ),
-      body: Container(
-        // Latar belakang tiling
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/ic_leave.png'), // Ganti gambar tiling
-            repeat: ImageRepeat.repeat,
-            opacity: 0.2,
-          ),
-        ),
-        child: StreamBuilder<QuerySnapshot>(
-          stream: dataCollection.orderBy('created_at', descending: true).snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              var data = snapshot.data!.docs;
-              return data.isNotEmpty
-                  ? ListView.builder(
-                    padding: const EdgeInsets.all(10),
-                    itemCount: data.length,
-                    itemBuilder: (context, index) {
-                      var docId = data[index].id;
-                      var docData = data[index].data() as Map<String, dynamic>;
-                      var name = docData.containsKey('name') ? docData['name'] : 'No Name';
-                      var address = docData.containsKey('address') ? docData['address'] : '-';
-                      var description = docData.containsKey('description') ? docData['description'] : 'N/A';
-                      var datetime = docData.containsKey('datetime') ? docData['datetime'] : 'N/A';
+      body: StreamBuilder<QuerySnapshot>(
+        // Mengurutkan berdasarkan timestamp untuk konsistensi
+        stream: dataCollection.orderBy('created_at', descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: primaryColor));
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}", style: GoogleFonts.poppins(color: Colors.red)));
+          }
 
-                      Color itemColor = _getColorForDescription(description);
-                      IconData itemIcon = _getIconForDescription(description);
+          var data = snapshot.data!.docs;
+          if (data.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox_outlined, size: 80, color: textColor.withOpacity(0.4)),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Belum Ada Data Absensi.",
+                    style: GoogleFonts.poppins(fontSize: 18, color: textColor.withOpacity(0.6), fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            );
+          }
 
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
-                        elevation: 10,
-                        shadowColor: const Color(0xFF0000FF), // Shadow Biru
-                        color: const Color(0xFFFFFF00), // Latar Kuning
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0), // Kotak
-                          side: BorderSide(color: itemColor, width: 4), // Border sesuai status
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                          leading: CircleAvatar(
-                            backgroundColor: itemColor,
-                            radius: 30,
-                            child: Icon(
-                              itemIcon,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
-                          title: Text(
-                            name.toUpperCase(),
-                            style: GoogleFonts.comicNeue(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 18,
-                              color: const Color(0xFF0000FF), // Biru
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                description,
-                                style: GoogleFonts.comicNeue(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 16,
-                                  color: itemColor,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                datetime,
-                                style: GoogleFonts.comicNeue(fontSize: 14, color: Colors.black, fontWeight: FontWeight.bold),
-                              ),
-                              if(address != '-')
-                                Text(
-                                  address,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.comicNeue(fontSize: 12, color: Colors.black54),
-                                ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit_outlined,
-                                  color: Color(0xFF0000FF), // Biru
-                                  size: 30,
-                                ),
-                                onPressed:
-                                    () => _editData(
-                                      docId,
-                                      name,
-                                      address,
-                                      description,
-                                      datetime,
-                                    ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_forever_rounded,
-                                  color: Colors.redAccent,
-                                  size: 30,
-                                ),
-                                onPressed: () => _deleteData(docId),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                  : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.cloud_off_rounded, size: 100, color: Colors.red),
-                        const SizedBox(height: 10),
-                        Text(
-                          "DATA KOSONG!!",
-                          style: GoogleFonts.comicNeue(fontSize: 30, color: Colors.red, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+          return ListView.builder(
+            padding: const EdgeInsets.all(10),
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              var docId = data[index].id;
+              var docData = data[index].data() as Map<String, dynamic>;
+              var name = docData.containsKey('name') ? docData['name'] : 'No Name';
+              var address = docData.containsKey('address') ? docData['address'] : '-';
+              var description = docData.containsKey('description') ? docData['description'] : 'N/A';
+              var datetime = docData.containsKey('datetime') ? docData['datetime'] : 'N/A';
+
+              Color itemColor = _getColorForDescription(description);
+              IconData itemIcon = _getIconForDescription(description);
+
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15), 
+                  side: BorderSide(color: itemColor.withOpacity(0.5), width: 1), 
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                  leading: CircleAvatar(
+                    backgroundColor: itemColor,
+                    radius: 25,
+                    child: Icon(
+                      itemIcon,
+                      color: Colors.white,
+                      size: 24,
                     ),
-                  );
-            } else {
-              return const Center(child: CircularProgressIndicator(color: Colors.red));
-            }
-          },
-        ),
+                  ),
+                  title: Text(
+                    name,
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: textColor,
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: itemColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Text(
+                          description.toUpperCase(),
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: itemColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        datetime,
+                        style: GoogleFonts.poppins(fontSize: 12, color: textColor.withOpacity(0.7)),
+                      ),
+                      if(address != '-')
+                        Text(
+                          address,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(fontSize: 12, color: textColor.withOpacity(0.5)),
+                        ),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.edit_outlined,
+                          color: primaryColor,
+                          size: 22,
+                        ),
+                        onPressed:
+                            () => _editData(
+                              docId,
+                              name,
+                              address,
+                              description,
+                              datetime,
+                            ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.redAccent,
+                          size: 22,
+                        ),
+                        onPressed: () => _deleteData(docId),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -10,88 +10,8 @@ import 'package:attendance_app/ui/attend/camera_screen.dart';
 import 'package:attendance_app/ui/home_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// --- COPY PASTE kSakitMataInputDecoration & SakitMataButton DARI ATAS KE SINI ---
-
-// Helper untuk Input Style
-InputDecoration kSakitMataInputDecoration(String label) {
-  return InputDecoration(
-    labelText: "--> $label <--",
-    labelStyle: GoogleFonts.comicNeue(
-      color: const Color(0xFFFF0000), // Merah
-      fontWeight: FontWeight.w900,
-      fontSize: 16,
-    ),
-    filled: true,
-    fillColor: const Color(0xFFFFFF00), // Latar Kuning
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(0), // Kotak
-      borderSide: const BorderSide(color: Color(0xFF0000FF), width: 4), // Border Biru Tebal
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(0),
-      borderSide: const BorderSide(color: Color(0xFF0000FF), width: 4),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(0),
-      borderSide: const BorderSide(color: Color(0xFFFF0000), width: 6), // Border Merah Tebal saat Fokus
-    ),
-  );
-}
-
-// Tombol Gradien yang Menyebalkan
-class SakitMataButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final String text;
-
-  const SakitMataButton({
-    Key? key,
-    required this.onPressed,
-    required this.text,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.all(0),
-        shape: BeveledRectangleBorder( // Bentuk aneh
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Colors.black, width: 3)
-        ),
-        elevation: 10,
-        shadowColor: Colors.black,
-      ),
-      child: Ink(
-        decoration: BoxDecoration(
-          // Gradien Pink ke Kuning
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFF00FF), Color(0xFFFFFF00)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Container(
-          width: double.infinity,
-          height: 60,
-          alignment: Alignment.center,
-          child: Text(
-            text.toUpperCase(),
-            style: GoogleFonts.comicNeue(
-              color: const Color(0xFF0000FF), // Teks Biru
-              fontWeight: FontWeight.w900,
-              fontSize: 20,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-// -------------------------------------------------------------------------
-
+// Import tema dan widget baru dari main.dart
+import 'package:attendance_app/main.dart'; // Import primaryColor, accentColor, textColor, kModernInputDecoration, ModernButton
 
 class AttendScreen extends StatefulWidget {
   final XFile? image;
@@ -117,7 +37,8 @@ class _AttendScreenState extends State<AttendScreen> {
 
   @override
   void initState() {
-    handleLocationPermission();
+    // Panggil permission check lebih awal, tapi proses lokasi hanya jika ada gambar
+    handleLocationPermission(); 
     setDateTime();
     setStatusAbsen();
     if (image != null) {
@@ -126,149 +47,44 @@ class _AttendScreenState extends State<AttendScreen> {
     }
     super.initState();
   }
-
+  
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("ATTENDANCE MENU"),
-      ),
-      body: Container(
-        // Latar belakang tiling
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/ic_leave.png'), // Ganti gambar tiling
-            repeat: ImageRepeat.repeat,
-            opacity: 0.2,
+  void dispose() {
+    controllerName.dispose();
+    super.dispose();
+  }
+
+  // Dialog Loading dengan UI yang lebih bersih
+  showLoaderDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      backgroundColor: Colors.white, 
+      contentPadding: const EdgeInsets.all(20),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      content: Row(
+        children: [
+          const CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
           ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "FOTO SELFIE ANDA!",
-                  style: GoogleFonts.comicNeue(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFFFF0000), // Merah
-                  ),
-                ),
-                const SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CameraScreen(),
-                      ),
-                    );
-                  },
-                  child: DottedBorder(
-                    radius: const Radius.circular(0),
-                    borderType: BorderType.RRect,
-                    color: const Color(0xFFFF0000), // Border Merah
-                    strokeWidth: 4,
-                    dashPattern: const [3, 3],
-                    child: Container(
-                      width: double.infinity,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFFF00).withOpacity(0.7), // Kuning transparan
-                        borderRadius: BorderRadius.circular(0)
-                      ),
-                      child: image != null
-                          ? ClipRRect(
-                            borderRadius: BorderRadius.circular(0),
-                            child: Image.file(
-                                File(image!.path),
-                                fit: BoxFit.cover,
-                              ),
-                          )
-                          : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.camera_enhance_outlined,
-                                color: Color(0xFFFF0000),
-                                size: 50,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                "KLIK DI SINI!!",
-                                style: GoogleFonts.comicNeue(
-                                  color: const Color(0xFFFF0000),
-                                  fontWeight: FontWeight.bold
-                                ),
-                              )
-                            ],
-                          ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  textInputAction: TextInputAction.done,
-                  keyboardType: TextInputType.text,
-                  controller: controllerName,
-                  decoration: kSakitMataInputDecoration("NAMA LENGKAP"),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  "LOKASI ANDA SEKARANG:",
-                  style: GoogleFonts.comicNeue(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFFFF0000),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                isLoading
-                    ? const Center(
-                      child: CircularProgressIndicator(color: Color(0xFFFF0000)),
-                    )
-                    : TextField(
-                          enabled: false,
-                          maxLines: 3,
-                          decoration: kSakitMataInputDecoration("").copyWith(
-                            hintText: strAlamat.isEmpty ? "Mencari lokasi..." : strAlamat,
-                            hintStyle: GoogleFonts.comicNeue(color: const Color(0xFF0000FF)), // Biru
-                          ),
-                        ),
-                const SizedBox(height: 30),
-                SakitMataButton(
-                  text: "LAPOR SEKARANG!",
-                  onPressed: () {
-                    if (image == null || controllerName.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "ISI SEMUA WOI!",
-                            style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          backgroundColor: Colors.redAccent,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    } else {
-                      submitAbsen(
-                        strAlamat,
-                        controllerName.text.toString(),
-                        strStatus,
-                      );
-                    }
-                  },
-                )
-              ],
+          Container(
+            margin: const EdgeInsets.only(left: 20),
+            child: Text(
+              "Memuat lokasi...",
+              style: GoogleFonts.poppins(color: textColor, fontWeight: FontWeight.w500),
             ),
-        ),
+          ),
+        ],
       ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 
-  // --- SEMUA FUNGSI DI BAWAH INI TETAP SAMA ---
-  // (Hanya mengubah warna SnackBar dan Dialog)
+  // --- SEMUA FUNGSI LOKASI & WAKTU (Fungsionalitas Asli) ---
 
   Future<void> getGeoLocationPosition() async {
     Position position = await Geolocator.getCurrentPosition(
@@ -287,8 +103,8 @@ class _AttendScreenState extends State<AttendScreen> {
     );
     Placemark place = placemarks[0];
     setState(() {
-      dLat = double.parse('${position.latitude}');
-      dLat = double.parse('${position.longitude}');
+      dLat = position.latitude;
+      dLong = position.longitude;
       strAlamat =
           "${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}";
     });
@@ -301,7 +117,7 @@ class _AttendScreenState extends State<AttendScreen> {
         SnackBar(
           content: Text(
             "Nyalakan GPS dulu!",
-            style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
+            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
           ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
@@ -318,7 +134,7 @@ class _AttendScreenState extends State<AttendScreen> {
           SnackBar(
             content: Text(
               "Izin lokasi ditolak.",
-              style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
+              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
             ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
@@ -333,7 +149,7 @@ class _AttendScreenState extends State<AttendScreen> {
         SnackBar(
           content: Text(
             "Izin lokasi ditolak selamanya.",
-            style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
+            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
           ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
@@ -343,34 +159,7 @@ class _AttendScreenState extends State<AttendScreen> {
     }
     return true;
   }
-
-  showLoaderDialog(BuildContext context) {
-    AlertDialog alert = AlertDialog(
-      backgroundColor: const Color(0xFFFFFF00), // Kuning
-      content: Row(
-        children: [
-          const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-          ),
-          Container(
-            margin: const EdgeInsets.only(left: 20),
-            child: Text(
-              "LOADING...",
-              style: GoogleFonts.comicNeue(color: Colors.red, fontWeight: FontWeight.bold),
-              ),
-          ),
-        ],
-      ),
-    );
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
-  }
-
+  
   void setDateTime() async {
     var dateNow = DateTime.now();
     var dateFormat = DateFormat('dd MMMM yyyy');
@@ -407,54 +196,33 @@ class _AttendScreenState extends State<AttendScreen> {
           'name': nama,
           'description': status,
           'datetime': strDateTime,
+          'created_at': FieldValue.serverTimestamp(),
         })
         .then((result) {
-          setState(() {
-            Navigator.of(context).pop();
-            try {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.check_circle_outline, color: Colors.white),
-                      const SizedBox(width: 10),
-                      Text(
-                        "BERHASIL!",
-                        style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ],
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Text(
+                    "Absensi BERHASIL dengan status: $status!",
+                    style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
                   ),
-                  backgroundColor: Colors.green, // Tetap hijau untuk sukses
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
-            } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.info_outline, color: Colors.white),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          "Ups, $e",
-                          style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: Colors.redAccent,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
-          });
+                ],
+              ),
+              backgroundColor: accentColor, 
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
         })
         .catchError((error) {
+          Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -463,8 +231,8 @@ class _AttendScreenState extends State<AttendScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      "Ups, $error",
-                      style: GoogleFonts.comicNeue(color: Colors.white, fontWeight: FontWeight.bold),
+                      "ERROR: Gagal menyimpan data.",
+                      style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -473,7 +241,142 @@ class _AttendScreenState extends State<AttendScreen> {
               behavior: SnackBarBehavior.floating,
             ),
           );
-          Navigator.of(context).pop();
         });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("ABSENSI HARI INI"),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Ambil Foto Selfie Anda",
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: textColor, 
+                ),
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CameraScreen(),
+                    ),
+                  );
+                },
+                child: DottedBorder(
+                  radius: const Radius.circular(15), 
+                  borderType: BorderType.RRect,
+                  color: primaryColor, 
+                  strokeWidth: 2,
+                  dashPattern: const [6, 4], 
+                  child: Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.white, 
+                      borderRadius: BorderRadius.circular(15)
+                    ),
+                    child: image != null
+                        ? ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Image.file(
+                              File(image!.path),
+                              fit: BoxFit.cover,
+                            ),
+                        )
+                        : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.camera_alt_outlined,
+                              color: primaryColor,
+                              size: 50,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              "KETUK UNTUK FOTO",
+                              style: GoogleFonts.poppins(
+                                color: primaryColor,
+                                fontWeight: FontWeight.w600
+                              ),
+                            )
+                          ],
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                textInputAction: TextInputAction.done,
+                keyboardType: TextInputType.text,
+                controller: controllerName,
+                decoration: kModernInputDecoration("Nama Lengkap"),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "Lokasi Anda Saat Ini:",
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(height: 10),
+              isLoading
+                  ? const Center(
+                    child: LinearProgressIndicator(color: primaryColor), 
+                  )
+                  : TextField(
+                        enabled: false,
+                        maxLines: 3,
+                        decoration: kModernInputDecoration("").copyWith(
+                          hintText: strAlamat.isEmpty ? "Mencari lokasi, tunggu sebentar..." : strAlamat,
+                          hintStyle: GoogleFonts.poppins(
+                            color: textColor.withOpacity(0.6), 
+                            fontSize: 14,
+                          ), 
+                          filled: true,
+                          fillColor: lightAccent.withOpacity(0.5), 
+                        ),
+                      ),
+              const SizedBox(height: 30),
+              ModernButton(
+                text: "KIRIM ABSENSI",
+                color: accentColor,
+                onPressed: () {
+                  if (image == null || controllerName.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Mohon lengkapi semua data (Foto dan Nama)!",
+                          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                        backgroundColor: Colors.redAccent,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  } else {
+                    submitAbsen(
+                      strAlamat,
+                      controllerName.text.toString(),
+                      strStatus,
+                    );
+                  }
+                },
+              )
+            ],
+          ),
+      ),
+    );
   }
 }
